@@ -47,15 +47,18 @@ Demonstrates how **Game Theory** provides the mechanism to manage emergent dynam
 ## 🏆 Key Results
 
 ### 1. Criticality (Ising Model)
+![Ising Phase Transition](ising_model_phase_transition.png)
 *   **Phase Transition**: Confirmed at $T \approx 2.25$ (Theory: $T_c \approx 2.269$).
-*   **Observation**: Sudden bifurcation in magnetization proves that local interactions yield global order at a critical threshold.
+*   **Observation**: Sudden bifurcation in magnetization proves that local interactions yield global order at a critical threshold. The sharp vertical line in the chart above represents the "Curie Point"—the exact moment the system "decides" on an ordered state.
 
 ### 2. Neural Scaling (Transformers)
+![Transformer Scaling](transformer_scaling_results.png)
 *   **Power Law**: Test loss scales as $L \propto N^{-1.58}$ (where N is parameters).
 *   **Validation**: Confirmed using a NanoGPT architecture on character-level tasks.
-*   **Implication**: The "potential" for intelligence scales smoothly with compute.
+*   **Implication**: The "potential" for intelligence scales smoothly with compute. The log-log plot demonstrates a clean linear relationship, validating the "Scaling Hypothesis" on realistic architectures.
 
 ### 3. Emergence & Strategy (LLMs)
+![Coordination Game](game_theory_coordination.png)
 *   **Coordination**: GPT-4o achieved **80% success** in a Schelling Point game (vs. 10% for GPT-3.5).
 *   **Elasticity**: Under noise constraints, GPT-4o's performance dropped to **40%**, validating the theory that emergent capabilities are "elastic" and require strategic stabilization.
 
