@@ -1,0 +1,18 @@
+# Power Law Experiments - Deep Learning Criticality Survey
+# Dependencies for three scientific experiments
+
+# Core numerical computing
+numpy>=1.24.0
+
+# Deep Learning (Autoencoder experiment)
+tensorflow>=2.13.0
+
+# Visualization
+matplotlib>=3.7.0
+
+# Optional: Progress bars for long simulations
+tqdm>=4.65.0
+
+
+# LLM Integration
+openai>=1.0.0

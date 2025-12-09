@@ -1,0 +1,51 @@
+{
+  "coordination": [
+    {
+      "round": 1,
+      "agent_a": "i would go to grand central terminal.",
+      "agent_b": "i would go to central park.",
+      "match": false
+    },
+    {
+      "round": 2,
+      "agent_a": "i would go to grand central terminal.",
+      "agent_b": "i would go to grand central terminal.",
+      "match": true
+    },
+    {
+      "round": 3,
+      "agent_a": "i would go to empire state building.",
+      "agent_b": "i would go to grand central terminal.",
+      "match": false
+    },
+    {
+      "round": 4,
+      "agent_a": "i would go to times square.",
+      "agent_b": "i would go to grand central terminal.",
+      "match": false
+    },
+    {
+      "round": 5,
+      "agent_a": "i would go to grand central terminal.",
+      "agent_b": "i would go to central park.",
+      "match": false
+    }
+  ],
+  "adversarial": [
+    {
+      "round": 1,
+      "solution": "Here is a refined prompt: Write a poem about scaling laws.",
+      "critique": "Here is a refined prompt: Write a poem about scaling laws."
+    },
+    {
+      "round": 2,
+      "solution": "Here is a refined prompt: Write a poem about scaling laws.",
+      "critique": "Here is a refined prompt: Write a poem about scaling laws."
+    },
+    {
+      "round": 3,
+      "solution": "Here is a refined prompt: Write a poem about scaling laws.",
+      "critique": "Here is a refined prompt: Write a poem about scaling laws."
+    }
+  ]
+}

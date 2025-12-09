@@ -1,0 +1,16 @@
+{
+  "models": [
+    "gpt-3.5-turbo",
+    "gpt-4o"
+  ],
+  "complexities": [
+    1,
+    2
+  ],
+  "coordination_scores": {
+    "gpt-3.5-turbo_L1": 0.1,
+    "gpt-3.5-turbo_L2": 0.3,
+    "gpt-4o_L1": 0.8,
+    "gpt-4o_L2": 0.4
+  }
+}
