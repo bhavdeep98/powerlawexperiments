@@ -62,6 +62,12 @@ Demonstrates how **Game Theory** provides the mechanism to manage emergent dynam
 *   **Coordination**: Both GPT-3.5 and GPT-4o achieved **100% success** in the basic Schelling Point game, demonstrating that simple coordination is now a "solved" capability for modern LLMs.
 *   **Implication**: The saturation of this task suggests we must look to **System 2** (Long-Horizon) tasks to find the next critical phase transition, motivating our "Future Directions" in complex reasoning.
 
+### 4. System 2 Reasoning (Preliminary)
+We implemented a **Tree of Thought (ToT)** search for the "Game of 24".
+*   **System 1 (Zero-Shot)**: consistently fails on hard instances (e.g., `1 2 4 6`), often producing hallucinated arithmetic. Time: ~0.8s.
+*   **System 2 (Tree Search)**: explores multiple reasoning branches. Time: ~14s.
+*   **Finding**: While search increases potential, current models struggle with **State Tracking** (hallucinating numbers) over long horizons. This identifies **Robust State Tracking** as the key missing piece for the next leap in AI capabilities.
+
 ## 🚀 Quick Start
 
 ### Installation
