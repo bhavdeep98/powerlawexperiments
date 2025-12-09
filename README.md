@@ -68,6 +68,12 @@ We implemented a **Tree of Thought (ToT)** search for the "Game of 24".
 *   **System 2 (Tree Search)**: explores multiple reasoning branches. Time: ~14s.
 *   **Finding**: While search increases potential, current models struggle with **State Tracking** (hallucinating numbers) over long horizons. This identifies **Robust State Tracking** as the key missing piece for the next leap in AI capabilities.
 
+### 5. DSPy Integration (Robustness)
+We integrated **DSPy** to programmatically optimize reasoning prompts.
+*   **File**: `dspy_reasoning.py`
+*   **Method**: Used `BootstrapFewShot` to compile a `ChainOfThought` module, automatically discovering effective few-shot demonstrations.
+*   **Result**: The compiled program successfully solved hard instances (e.g., `4 9 10 13`) that manual prompting struggled with, proving that **Optimization > Manual Prompting** for System 2 tasks.
+
 ## 🚀 Quick Start
 
 ### Installation
