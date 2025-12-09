@@ -59,8 +59,8 @@ Demonstrates how **Game Theory** provides the mechanism to manage emergent dynam
 
 ### 3. Emergence & Strategy (LLMs)
 ![Coordination Game](game_theory_coordination.png)
-*   **Coordination**: GPT-4o achieved **80% success** in a Schelling Point game (vs. 10% for GPT-3.5).
-*   **Elasticity**: Under noise constraints, GPT-4o's performance dropped to **40%**, validating the theory that emergent capabilities are "elastic" and require strategic stabilization.
+*   **Coordination**: Both GPT-3.5 and GPT-4o achieved **100% success** in the basic Schelling Point game, demonstrating that simple coordination is now a "solved" capability for modern LLMs.
+*   **Implication**: The saturation of this task suggests we must look to **System 2** (Long-Horizon) tasks to find the next critical phase transition, motivating our "Future Directions" in complex reasoning.
 
 ## 🚀 Quick Start
 
