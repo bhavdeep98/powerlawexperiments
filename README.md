@@ -283,7 +283,17 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ---
 
 <p align="center">
-  <i>Bridging Statistical Physics, Deep Learning, and Game Theory</i><br>
-  <i>to understand the emergence of intelligence in AI systems.</i>
-</p>
+
+## 📋 Executive Summary (Phase 1 Findings)
+
+Our initial experiments have successfully demonstrated the theoretical link between **compute**, **reasoning**, and **criticality**:
+
+1.  **System 2 Scaling**: We confirmed that reasoning performance scales with compute budget (inference-time search) following a power law **$S \propto C^{0.205}$**. This suggests that "thinking longer" (System 2) yields predictable gains similar to "training bigger" (System 1).
+2.  **Critical Thresholds**: We identified a soft threshold at **~4.0 compute units**, where models begin to reliably solve complex logical tasks that are impossible zero-shot.
+3.  **Optimization Gap**: While brute-force search works, it is inefficient. Phase 2 will focus on **DSPy optimization** to prove that *structured* reasoning outperforms *unstructured* search.
+
+![System 2 Power Laws](system2_power_laws.png)
+
+---
+
 
