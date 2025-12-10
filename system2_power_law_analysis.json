@@ -1,0 +1,17 @@
+{
+  "solve_rate_scaling": {
+    "power_law_coefficient": 0.47729268549771037,
+    "power_law_exponent": 0.20515887336382088,
+    "r_squared": 0.7279362308613228,
+    "critical_compute": 4.0,
+    "data_points": 16
+  },
+  "hallucination_phase_transition": {
+    "max_drop": 0.07100591715976332,
+    "drop_point": 3.0,
+    "has_phase_transition": "False"
+  },
+  "search_efficiency": {
+    "error": "No ToT comparison results found"
+  }
+}

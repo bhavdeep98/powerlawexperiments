@@ -265,6 +265,12 @@ class System2CriticalityExperiment:
                                 print(f"  → Success: {result['success']}, "
                                       f"Nodes: {result['metrics']['nodes_explored']}, "
                                       f"Time: {result['metrics']['time_to_solution']:.2f}s")
+                                
+                                # Intermediate save every 5 results
+                                if len(results) % 5 == 0:
+                                    self.results = results  # Update instance variable
+                                    self.save_results("results/system2/scaling_results_partial.json")
+                                    
                             except Exception as e:
                                 print(f"  → Error: {str(e)}")
                                 results.append({
@@ -358,10 +364,25 @@ class System2CriticalityExperiment:
         aggregated = self.aggregate_results()
         critical_points = self.find_critical_points(aggregated)
         
+        # Convert tuple keys to strings for JSON serialization
+        aggregated_json = {}
+        for k, v in aggregated.items():
+            # k is (model, depth, beam)
+            key_str = f"{k[0]}_{k[1]}_{k[2]}"
+            aggregated_json[key_str] = v
+            
+        # Also clean up critical points configs
+        critical_points_json = []
+        for cp in critical_points:
+            cp_copy = cp.copy()
+            # cp['config'] is the tuple
+            cp_copy['config'] = list(cp['config'])  # Convert tuple to list
+            critical_points_json.append(cp_copy)
+        
         output = {
             'raw_results': self.results,
-            'aggregated': aggregated,
-            'critical_points': critical_points,
+            'aggregated': aggregated_json,
+            'critical_points': critical_points_json,
             'config': asdict(self.config)
         }
         

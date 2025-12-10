@@ -79,17 +79,29 @@ def analyze_solve_rate_scaling(results: Dict) -> Dict:
     Hypothesis: S ∝ (M × D)^α
     where M = model_size, D = search_depth
     """
-    if 'criticality' not in results:
+    # Handle different result formats
+    if 'criticality' in results:
+        data_source = results['criticality']
+    elif 'aggregated' in results:
+        data_source = results
+    else:
         return {'error': 'No criticality results found'}
     
-    aggregated = results['criticality'].get('aggregated', {})
+    aggregated = data_source.get('aggregated', {})
     
     # Extract data
     compute_budgets = []
     solve_rates = []
     
-    for config, metrics in aggregated.items():
-        model, depth, beam = config
+    for config_key, metrics in aggregated.items():
+        if isinstance(config_key, str):
+            parts = config_key.rsplit('_', 2)
+            if len(parts) == 3:
+                model = parts[0]
+                depth = int(parts[1])
+        else:
+            model, depth, beam = config_key
+            
         solve_rate = metrics.get('solve_rate', 0.0)
         
         # Estimate compute budget (simplified: model_size × depth)
@@ -123,10 +135,15 @@ def analyze_solve_rate_scaling(results: Dict) -> Dict:
 
 def analyze_hallucination_phase_transition(results: Dict) -> Dict:
     """Analyze if hallucination_rate shows phase transition."""
-    if 'criticality' not in results:
+    # Handle different result formats
+    if 'criticality' in results:
+        data_source = results['criticality']
+    elif 'aggregated' in results:
+        data_source = results
+    else:
         return {'error': 'No criticality results found'}
     
-    aggregated = results['criticality'].get('aggregated', {})
+    aggregated = data_source.get('aggregated', {})
     
     # Extract data
     model_sizes = []
@@ -134,8 +151,14 @@ def analyze_hallucination_phase_transition(results: Dict) -> Dict:
     
     model_size_map = {'gpt-3.5-turbo': 1.0, 'gpt-4o-mini': 2.0, 'gpt-4o': 4.0}
     
-    for config, metrics in aggregated.items():
-        model, depth, beam = config
+    for config_key, metrics in aggregated.items():
+        if isinstance(config_key, str):
+            parts = config_key.rsplit('_', 2)
+            if len(parts) == 3:
+                model = parts[0]
+        else:
+            model, depth, beam = config_key
+            
         hall_rate = metrics.get('hallucination_rate', 0.0)
         
         model_size = model_size_map.get(model, 1.0)
@@ -212,16 +235,35 @@ def plot_power_law_relationships(results: Dict, save_path: str = 'system2_power_
         fig, axes = plt.subplots(2, 2, figsize=(14, 10))
         
         # 1. Solve rate vs compute budget
+        # 1. Solve rate vs compute budget
         ax1 = axes[0, 0]
+        
+        # Handle different result formats
         if 'criticality' in results:
-            aggregated = results['criticality'].get('aggregated', {})
+            data_source = results['criticality']
+        elif 'aggregated' in results:
+            data_source = results
+        else:
+            data_source = {}
+            
+        if data_source:
+            aggregated = data_source.get('aggregated', {})
             compute_budgets = []
             solve_rates = []
             
             model_size_map = {'gpt-3.5-turbo': 1.0, 'gpt-4o-mini': 2.0, 'gpt-4o': 4.0}
             
-            for config, metrics in aggregated.items():
-                model, depth, beam = config
+            for config_key, metrics in aggregated.items():
+                if isinstance(config_key, str):
+                    # Parse string key "model_depth_beam"
+                    parts = config_key.rsplit('_', 2)
+                    if len(parts) == 3:
+                        model = parts[0]
+                        depth = int(parts[1])
+                else:
+                    # Tuple key
+                    model, depth, beam = config_key
+                
                 model_size = model_size_map.get(model, 1.0)
                 compute = model_size * depth
                 compute_budgets.append(compute)

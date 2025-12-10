@@ -38,11 +38,19 @@ class ArithmeticChainBenchmark(Benchmark):
             else:
                 op = random.choice(operations)
             
+            # Prevent invalid operations
+            if op == '-' and current < 1:
+                op = '+'
+            if op == '/' and abs(current) < 1:
+                op = '+'
+            
             # Choose next number
             if op == '+':
                 next_num = random.randint(1, 50)
             elif op == '-':
-                next_num = random.randint(1, current)
+                # Ensure we have a valid range for randint
+                limit = max(1, int(current))
+                next_num = random.randint(1, limit)
             elif op == '*':
                 next_num = random.randint(2, 10)
             else:  # division

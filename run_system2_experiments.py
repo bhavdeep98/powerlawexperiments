@@ -138,8 +138,8 @@ def run_scaling_experiments():
     config = ExperimentConfig(
         models=['gpt-4o-mini', 'gpt-4o'],  # Start with 2 models
         search_depths=[1, 3, 5, 10],
-        beam_widths=[1, 3, 5],
-        num_samples=[1, 5],
+        beam_widths=[1, 3],      # REMOVED 5 for speed
+        num_samples=[1],         # REMOVED 5 for speed (single pass)
         branching_factors=[3]
     )
     
