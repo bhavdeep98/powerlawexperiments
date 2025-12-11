@@ -299,15 +299,36 @@ def main():
         
         # 2. Scaling
         print("\n" + "="*70)
-        print("STEP 2: SCALING EXPERIMENTS")
+        print("STEP 2: SCALING EXPERIMENTS (Skipped for Phase 2 Fast-Track)")
         print("="*70)
-        scaling_results = run_scaling_experiments()
+        # scaling_results = run_scaling_experiments()
+        scaling_results = {}
         
         # 3. Architecture comparison
         print("\n" + "="*70)
         print("STEP 3: ARCHITECTURE COMPARISON")
         print("="*70)
         arch_results = run_architecture_comparison()
+
+        # 4. Criticality Sniper Search (New Phase 2 Step)
+        print("\n" + "="*70)
+        print("STEP 4: CRITICALITY SNIPER SEARCH (Targeted High-Beam)")
+        print("="*70)
+        # Targeted search: Hard tasks + High beams (5)
+        benchmark = GameOf24Benchmark()
+        hard_problems = benchmark.get_problems(difficulty=3, num_problems=3)
+        tasks = [p.metadata['numbers'] for p in hard_problems if 'numbers' in p.metadata]
+        
+        sniper_config = ExperimentConfig(
+            models=['gpt-4o'],
+            search_depths=[10, 20],
+            beam_widths=[5],  # Critical threshold candidate
+            num_samples=[1],
+            branching_factors=[3]
+        )
+        sniper_experiment = System2CriticalityExperiment(sniper_config)
+        sniper_results = sniper_experiment.run_scaling_experiment(tasks)
+        sniper_experiment.save_results(str(results_dir / "criticality_sniper_results.json"))
         
         # 4. State tracking
         print("\n" + "="*70)
