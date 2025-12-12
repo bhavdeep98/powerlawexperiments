@@ -1,0 +1,27 @@
+DEBUGGING EXPERIMENT 1.2 (T-Scaling) - SINGLE TRACE
+===================================================
+Problem: 4 9 10 13
+Model: gpt-4o-mini
+Depth: 5
+
+Running search...
+
+RESULT TRACE:
+-------------
+
+Final Solution:
+Current Numbers: [4 9 10 13] | History: Start -> 2. Operation: 9 + 13 = 22 | Remaining: [4, 10, 22] -> 3. Operation: 9 + 10 = 19 | Remaining: [4, 19, 22] -> 3. Operation: 19 - 4 = 15 | Remaining: [10, 15, 22] -> 1. Operation: 15 + 9 = 24 | Remaining: [10, 22] -> 1. Operation: 10 + 22 = 32 | Remaining: [32, 15]
+
+Metrics:
+{
+  "solve_rate": 0.0,
+  "tokens_used": 2600,
+  "time_to_solution": 42.32312202453613,
+  "search_efficiency": 0.0,
+  "hallucination_rate": 0.0,
+  "nodes_explored": 13,
+  "nodes_generated": 39,
+  "max_depth_reached": 5
+}
+
+Result Keys: dict_keys(['model', 'task', 'search_depth', 'beam_width', 'branching_factor', 'strategy', 'success', 'metrics', 'solution'])

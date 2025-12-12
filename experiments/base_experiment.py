@@ -23,7 +23,7 @@ import numpy as np
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, asdict
 from openai import OpenAI
-from tree_of_thought_enhanced import EnhancedGameOf24, SearchStrategy
+from agents.tree_of_thought_enhanced import EnhancedGameOf24, SearchStrategy
 
 # Configuration
 API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -211,7 +211,8 @@ class System2CriticalityExperiment:
             'branching_factor': branching_factor,
             'strategy': strategy.value,
             'success': result['success'],
-            'metrics': asdict(experiment_metrics)
+            'metrics': asdict(experiment_metrics),
+            'solution': result['solution']
         }
     
     def run_scaling_experiment(self, 

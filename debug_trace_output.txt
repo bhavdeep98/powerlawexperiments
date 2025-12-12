@@ -1,0 +1,27 @@
+DEBUGGING EXPERIMENT 1.2 (T-Scaling) - SINGLE TRACE
+===================================================
+Problem: 4 9 10 13
+Model: gpt-4o-mini
+Depth: 5
+
+Running search...
+
+RESULT TRACE:
+-------------
+
+Final Solution:
+No solution found
+
+Metrics:
+{
+  "solve_rate": 1.0,
+  "tokens_used": 2600,
+  "time_to_solution": 59.99258089065552,
+  "search_efficiency": 0.07692307692307693,
+  "hallucination_rate": 0.0,
+  "nodes_explored": 13,
+  "nodes_generated": 39,
+  "max_depth_reached": 5
+}
+
+Result Keys: dict_keys(['model', 'task', 'search_depth', 'beam_width', 'branching_factor', 'strategy', 'success', 'metrics'])

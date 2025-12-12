@@ -23,14 +23,15 @@ except ImportError:
     pass
 
 # Import existing infrastructure
-from system2_criticality_experiment import (
+# Import existing infrastructure
+from experiments.base_experiment import (
     System2CriticalityExperiment, 
     ExperimentConfig,
     GameOf24Dataset
 )
-from benchmarks import GameOf24Benchmark
-from system2_power_law_analysis import fit_power_law, find_critical_exponent
-from tree_of_thought_enhanced import SearchStrategy
+from agents.benchmarks import GameOf24Benchmark
+from analysis.system2_power_law_analysis import fit_power_law, find_critical_exponent
+from agents.tree_of_thought_enhanced import SearchStrategy
 
 # Configuration
 API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -101,6 +102,7 @@ def run_t_scaling_experiment(
     experiment = System2CriticalityExperiment(config)
     
     results = []
+    all_traces = []  # Store individual traces for grammar analysis
     start_time = time.time()
     
     # Convert problems to task format
@@ -111,81 +113,102 @@ def run_t_scaling_experiment(
         print(f"Testing T={T} (search depth)...")
         print(f"{'─'*70}")
         
-        solve_rates = []
-        search_efficiencies = []
-        nodes_explored_list = []
-        times_list = []
+        # Define strategies to compare
+        strategies = [
+            SearchStrategy.BEAM,
+            SearchStrategy.BEST_FIRST,
+            # SearchStrategy.MCTS  # Skipped: excessively slow (>15m per problem) at T>=5
+        ]
         
-        for rep in range(replications):
-            print(f"\n  Replication {rep+1}/{replications}:")
+        for strategy in strategies:
+            print(f"\n  Strategy: {strategy.value.upper()}")
             
-            for i, task in enumerate(tasks):
-                problem = problems[i]
-                print(f"    Problem {i+1}/{len(tasks)}: {problem.problem_id}", end=" ... ")
+            solve_rates = []
+            search_efficiencies = []
+            nodes_explored_list = []
+            times_list = []
+            
+            for rep in range(replications):
+                print(f"    Replication {rep+1}/{replications}:")
                 
-                try:
-                    # Evaluate single configuration
-                    result = experiment.evaluate_single_config(
-                        model=model,
-                        task=task,
-                        search_depth=T,
-                        beam_width=beam_width,
-                        branching_factor=branching_factor,
-                        strategy=SearchStrategy.BEAM
-                    )
+                for i, task in enumerate(tasks):
+                    problem = problems[i]
+                    print(f"      Problem {i+1}/{len(tasks)}: {problem.problem_id}", end=" ... ")
                     
-                    # Evaluate solution
-                    is_correct, partial_credit = benchmark.evaluate_solution(
-                        problem, result.get('solution', '')
-                    )
-                    
-                    solve_rates.append(1.0 if is_correct else 0.0)
-                    
-                    metrics = result.get('metrics', {})
-                    nodes_explored = metrics.get('nodes_explored', 0)
-                    nodes_explored_list.append(nodes_explored)
-                    
-                    if nodes_explored > 0:
-                        search_efficiency = (1.0 if is_correct else 0.0) / nodes_explored
-                    else:
-                        search_efficiency = 0.0
-                    search_efficiencies.append(search_efficiency)
-                    
-                    times_list.append(metrics.get('time_to_solution', result.get('time', 0)))
-                    
-                    status = "✓" if is_correct else "✗"
-                    print(f"{status} (nodes: {nodes_explored}, time: {metrics.get('time_to_solution', 0):.1f}s)")
-                    
-                except Exception as e:
-                    print(f"ERROR: {str(e)}")
-                    solve_rates.append(0.0)
-                    search_efficiencies.append(0.0)
-                    nodes_explored_list.append(0)
-                    times_list.append(0.0)
-        
-        # Aggregate results for this T value
-        result_summary = {
-            'T': T,
-            'solve_rate': float(np.mean(solve_rates)),
-            'solve_rate_std': float(np.std(solve_rates)),
-            'search_efficiency': float(np.mean(search_efficiencies)),
-            'search_efficiency_std': float(np.std(search_efficiencies)),
-            'avg_nodes_explored': float(np.mean(nodes_explored_list)),
-            'avg_nodes_std': float(np.std(nodes_explored_list)),
-            'avg_time': float(np.mean(times_list)),
-            'avg_time_std': float(np.std(times_list)),
-            'num_problems': num_problems,
-            'replications': replications,
-            'total_runs': len(solve_rates)
-        }
-        
-        results.append(result_summary)
-        
-        print(f"\n  Summary for T={T}:")
-        print(f"    Solve Rate: {result_summary['solve_rate']:.3f} ± {result_summary['solve_rate_std']:.3f}")
-        print(f"    Search Efficiency: {result_summary['search_efficiency']:.4f} ± {result_summary['search_efficiency_std']:.4f}")
-        print(f"    Avg Nodes Explored: {result_summary['avg_nodes_explored']:.1f} ± {result_summary['avg_nodes_std']:.1f}")
-        print(f"    Avg Time: {result_summary['avg_time']:.2f}s ± {result_summary['avg_time_std']:.2f}s")
+                    try:
+                        # Evaluate single configuration
+                        result = experiment.evaluate_single_config(
+                            model=model,
+                            task=task,
+                            search_depth=T,
+                            beam_width=beam_width,
+                            branching_factor=branching_factor,
+                            strategy=strategy
+                        )
+                        
+                        # Use the success flag from the result (which is now strictly verified)
+                        # But we also double check with benchmark just in case
+                        is_correct, partial_credit = benchmark.evaluate_solution(
+                            problem, result.get('solution', '')
+                        )
+                        
+                        # Trust the benchmark's check primarily
+                        solve_rates.append(1.0 if is_correct else 0.0)
+                        
+                        metrics = result.get('metrics', {})
+                        nodes_explored = metrics.get('nodes_explored', 0)
+                        nodes_explored_list.append(nodes_explored)
+                        
+                        if nodes_explored > 0:
+                            search_efficiency = (1.0 if is_correct else 0.0) / nodes_explored
+                        else:
+                            search_efficiency = 0.0
+                        search_efficiencies.append(search_efficiency)
+                        
+                        times_list.append(metrics.get('time_to_solution', result.get('time', 0)))
+                        
+                        # Save trace
+                        all_traces.append({
+                            'T': T,
+                            'strategy': strategy.value,
+                            'problem_id': problem.problem_id,
+                            'solution_text': result.get('solution', ''),
+                            'success': is_correct,
+                            'node_count': nodes_explored
+                        })
+                        
+                        status = "✓" if is_correct else "✗"
+                        print(f"{status} (nodes: {nodes_explored}, time: {metrics.get('time_to_solution', 0):.1f}s)")
+                        
+                    except Exception as e:
+                        print(f"ERROR: {str(e)}")
+                        solve_rates.append(0.0)
+                        search_efficiencies.append(0.0)
+                        nodes_explored_list.append(0)
+                        times_list.append(0.0)
+            
+            # Aggregate results for this T value AND strategy
+            result_summary = {
+                'T': T,
+                'strategy': strategy.value,
+                'solve_rate': float(np.mean(solve_rates)),
+                'solve_rate_std': float(np.std(solve_rates)),
+                'search_efficiency': float(np.mean(search_efficiencies)),
+                'search_efficiency_std': float(np.std(search_efficiencies)),
+                'avg_nodes_explored': float(np.mean(nodes_explored_list)),
+                'avg_nodes_std': float(np.std(nodes_explored_list)),
+                'avg_time': float(np.mean(times_list)),
+                'avg_time_std': float(np.std(times_list)),
+                'num_problems': num_problems,
+                'replications': replications,
+                'total_runs': len(solve_rates)
+            }
+            
+            results.append(result_summary)
+            
+            print(f"\n    Summary for T={T}, {strategy.value}:")
+            print(f"      Solve Rate: {result_summary['solve_rate']:.3f} ± {result_summary['solve_rate_std']:.3f}")
+            print(f"      Search Efficiency: {result_summary['search_efficiency']:.4f}")
     
     total_time = time.time() - start_time
     
@@ -221,8 +244,14 @@ def run_t_scaling_experiment(
     output_file = output_path / "exp1_2_t_scaling_results.json"
     with open(output_file, 'w') as f:
         json.dump(output, f, indent=2, default=str)
+        
+    # Save traces separately
+    trace_file = output_path / "exp1_2_traces.json"
+    with open(trace_file, 'w') as f:
+        json.dump(all_traces, f, indent=2, default=str)
     
     print(f"\n✓ Results saved to {output_file}")
+    print(f"✓ Traces saved to {trace_file}")
     print(f"✓ Total execution time: {total_time/60:.1f} minutes")
     
     return output
@@ -239,7 +268,29 @@ def analyze_t_scaling(results: List[Dict]) -> Dict:
     search_efficiencies = np.array([r['search_efficiency'] for r in results])
     
     # Fit power law: solve_rate ∝ T^β_T
-    a_solve, beta_T_solve, r_squared_solve = fit_power_law(T_values, solve_rates)
+    # We need to analyze per strategy now
+    
+    strategies = sorted(list(set(r['strategy'] for r in results)))
+    analysis = {}
+    
+    for strategy in strategies:
+        strat_results = [r for r in results if r['strategy'] == strategy]
+        
+        T_vals = np.array([r['T'] for r in strat_results])
+        s_rates = np.array([r['solve_rate'] for r in strat_results])
+        
+        a_solve, beta_T_solve, r_squared_solve = fit_power_law(T_vals, s_rates)
+        
+        analysis[strategy] = {
+            'solve_rate_power_law': {
+                'coefficient': float(a_solve),
+                'exponent': float(beta_T_solve),
+                'r_squared': float(r_squared_solve),
+                'formula': f"solve_rate = {a_solve:.4f} × T^{beta_T_solve:.4f}"
+            }
+        }
+        
+    return analysis
     
     # Fit power law for search efficiency
     a_eff, beta_T_eff, r_squared_eff = fit_power_law(T_values, search_efficiencies)

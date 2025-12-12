@@ -225,9 +225,17 @@ Example: "Operation: 10 + 4 = 14 | Remaining: [14, 9, 13]"
             return candidates[:self.branching_factor]
         except:
             return []
-    
-    def evaluate_node(self, node: ThoughtNode) -> float:
+
+    def evaluate_node(self, node: ThoughtNode, validator_tool: Callable[[str], str] = None) -> float:
         """Evaluate a node's value."""
+        # 1. External Validation (Prosthetic Intelligence)
+        if validator_tool:
+             validation = validator_tool(node.state)
+             if "NO" in validation or "Invalid" in validation:
+                 return 0.0
+             if "YES" in validation:
+                 return 1.0
+
         if self.use_llm_evaluation:
             return evaluate_state_llm(node.state, self.model)
         else:
@@ -246,7 +254,7 @@ Example: "Operation: 10 + 4 = 14 | Remaining: [14, 9, 13]"
             pass
         return False
     
-    def search(self, initial_state: str) -> Optional[ThoughtNode]:
+    def search(self, initial_state: str, validator_tool: Callable[[str], str] = None) -> Optional[ThoughtNode]:
         """Perform search. Override in subclasses."""
         raise NotImplementedError
 
@@ -254,7 +262,7 @@ Example: "Operation: 10 + 4 = 14 | Remaining: [14, 9, 13]"
 class BFSSearcher(TreeOfThoughtSearcher):
     """Breadth-First Search."""
     
-    def search(self, initial_state: str) -> Optional[ThoughtNode]:
+    def search(self, initial_state: str, validator_tool: Callable[[str], str] = None) -> Optional[ThoughtNode]:
         start_time = time.time()
         queue = deque([ThoughtNode(initial_state, depth=0)])
         visited = set()
@@ -303,7 +311,7 @@ class BFSSearcher(TreeOfThoughtSearcher):
 class DFSSearcher(TreeOfThoughtSearcher):
     """Depth-First Search."""
     
-    def search(self, initial_state: str) -> Optional[ThoughtNode]:
+    def search(self, initial_state: str, validator_tool: Callable[[str], str] = None) -> Optional[ThoughtNode]:
         start_time = time.time()
         stack = [ThoughtNode(initial_state, depth=0)]
         visited = set()
@@ -334,7 +342,7 @@ class DFSSearcher(TreeOfThoughtSearcher):
                 
                 if is_valid:
                     child = ThoughtNode(full_state, parent=node, depth=node.depth + 1)
-                    child.value_score = self.evaluate_node(child)
+                    child.value_score = self.evaluate_node(child, validator_tool)
                     node.children.append(child)
                     valid_children.append(child)
                 else:
@@ -352,7 +360,7 @@ class DFSSearcher(TreeOfThoughtSearcher):
 class BestFirstSearcher(TreeOfThoughtSearcher):
     """Best-First Search (greedy by value score)."""
     
-    def search(self, initial_state: str) -> Optional[ThoughtNode]:
+    def search(self, initial_state: str, validator_tool: Callable[[str], str] = None) -> Optional[ThoughtNode]:
         start_time = time.time()
         # Priority queue: higher score = higher priority
         queue = []
@@ -386,7 +394,7 @@ class BestFirstSearcher(TreeOfThoughtSearcher):
                 
                 if is_valid:
                     child = ThoughtNode(full_state, parent=node, depth=node.depth + 1)
-                    child.value_score = self.evaluate_node(child)
+                    child.value_score = self.evaluate_node(child, validator_tool)
                     node.children.append(child)
                     heapq.heappush(queue, (-child.value_score, id(child), child))
                 else:
@@ -406,7 +414,7 @@ class BeamSearcher(TreeOfThoughtSearcher):
         super().__init__(**kwargs)
         self.beam_width = beam_width
     
-    def search(self, initial_state: str) -> Optional[ThoughtNode]:
+    def search(self, initial_state: str, validator_tool: Callable[[str], str] = None) -> Optional[ThoughtNode]:
         start_time = time.time()
         beam = [ThoughtNode(initial_state, depth=0)]
         
@@ -430,7 +438,7 @@ class BeamSearcher(TreeOfThoughtSearcher):
                     
                     if is_valid:
                         child = ThoughtNode(full_state, parent=node, depth=depth + 1)
-                        child.value_score = self.evaluate_node(child)
+                        child.value_score = self.evaluate_node(child, validator_tool)
                         node.children.append(child)
                         all_candidates.append(child)
                     else:
@@ -586,7 +594,8 @@ class EnhancedGameOf24:
                   branching_factor: int = 3,
                   max_depth: int = 5,
                   beam_width: int = 3,
-                  use_llm_evaluation: bool = True) -> Dict:
+                  use_llm_evaluation: bool = True,
+                  validator_tool: Callable[[str], str] = None) -> Dict:
         """System 2: Tree Search with specified strategy."""
         initial_state = f"Current Numbers: [{self.numbers}] | History: Start"
         
@@ -631,18 +640,24 @@ class EnhancedGameOf24:
             raise ValueError(f"Unknown strategy: {strategy}")
         
         # Perform search
-        solution_node = searcher.search(initial_state)
+        solution_node = searcher.search(initial_state, validator_tool)
         
         # Calculate metrics
         metrics = searcher.metrics.copy()
         if solution_node:
+            # Check if it is actually a solution
+            is_valid_solution = searcher.is_solution(solution_node.state)
+        else:
+            is_valid_solution = False
+
+        if is_valid_solution:
             metrics['solution_found'] = True
             metrics['solution_path'] = solution_node.state
             metrics['solution_depth'] = solution_node.depth
         else:
             metrics['solution_found'] = False
-            metrics['solution_path'] = None
-            metrics['solution_depth'] = None
+            metrics['solution_path'] = solution_node.state if solution_node else None
+            metrics['solution_depth'] = solution_node.depth if solution_node else None
         
         # Calculate branching factor
         if metrics['nodes_explored'] > 0:
@@ -651,7 +666,7 @@ class EnhancedGameOf24:
         return {
             'strategy': strategy.value,
             'solution': solution_node.state if solution_node else None,
-            'success': solution_node is not None,
+            'success': is_valid_solution,
             'metrics': metrics
         }
     
